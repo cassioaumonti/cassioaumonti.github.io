@@ -18,6 +18,15 @@ So, let's get started from the beginning and try to answer the first question.
 In my opinion, being a data scientist is about working with data gathered from several sources under the objective of extracting and understanding fundamental information and, after some modeling, answering game changing questions for the business strategy. In other words, a data scientist uses programming languages, like SQL, R, or/and Python, to mine tons of information, also known as Big Data, and recognise patterns that can be used for forecasting and extracting insights for a particular purpose. It is interesting to notice that data analysis might be seen as a fraction of data science due to the tasks normally executed by a data analyst, which may be doing some statistics, know the how to work with databases, and apply nice visualization techniques to the dataset so it is easier to figure out the patterns. It is a fundamental part of data science without question. In addition, working with machine learning is a **must** for data science, since the amount of data with which a data scientist has to deal requires advanced learning algorithms to efficiently return meaningful insights.
 
 
+### 2. What do you see as the major duties and/or knowledge areas?
+
+The major duties of a data scientist are related to knowing what is called a "scientific" programming language, which can be R, Python, and/or SAS. By the way, there are many more programming languages that can be used for data science, these three are just the most common. It is fundamental to know at least two of them because there is a 100% chance that these languages will merge into an API (Application Programming Interface) at some point of your analysis. For example, R has several packages that can be loaded in its environment and many of them convert a Python library composed of advanced and flexible modeling functions to run within R. Python (and R) has SQL functions that can be loaded within its environment by an API, and so on. By the way, knowing SQL is also a major duty of a data scientist because SQL structures, queries, and updates large databases faster than any of the previous programming languages do in their natural environment.
+
+A data scientist is supposed to know how to obtain data, from web scraping for instance, clean this data, through exploratory data analysis, and model the data obtained, several times using machine learning and/or statistics.
+
+However, the main duty of a data scientist should be to, first of all, understand the problem and its importance for a particular business and, then, use all the above described knowledge to extract meaningful information and address the research questions efficiently.
+
+
 And finally, 
 
 ### 4. How do you view yourself in relation to these two areas?

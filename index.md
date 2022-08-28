@@ -1,5 +1,5 @@
-Here you can say lots of fun things about your site.
+This blog will discuss primarily the concept, main attributes, and duties of being a Data Scientist in 2022.
 
-Maybe say a some things about yourself.
+It will be composed of a series of posts narrowed by the topics and questions from ST 558.
 
-Or maybe what you plan to blog about.
+Welcome to my Data Science blog !!

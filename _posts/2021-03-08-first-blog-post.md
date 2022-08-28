@@ -22,9 +22,9 @@ In my opinion, being a data scientist is about working with data gathered from s
 
 The major duties of a data scientist are related to knowing what is called a "scientific" programming language, which can be R, Python, and/or SAS. By the way, there are many more programming languages that can be used for data science, these three are just the most common. It is fundamental to know at least two of them because there is a 100% chance that these languages will merge into an API (Application Programming Interface) at some point of your analysis. For example, R has several packages that can be loaded in its environment and many of them convert a Python library composed of advanced and flexible modeling functions to run within R. Python (and R) has SQL functions that can be loaded within its environment by an API, and so on. By the way, knowing SQL is also a major duty of a data scientist because SQL structures, queries, and updates large databases faster than any of the previous programming languages do in their natural environment.
 
-A data scientist is supposed to know how to obtain data, from web scraping for instance, clean this data, through exploratory data analysis, and model the data obtained, several times using machine learning and/or statistics.
+A data scientist is supposed to know how to obtain data, from web scraping for instance, clean this data, through exploratory data analysis, and model the data obtained, several times using machine learning and/or statistical models.
 
-However, the main duty of a data scientist should be to, first of all, understand the problem and its importance for a particular business and, then, use all the above described knowledge to extract meaningful information and address the research questions efficiently.
+However, in my opinion, the main duty of a data scientist should be to, first of all, understand the problem and its importance for a particular business and, then, use all the above described knowledge to extract meaningful information and address the research questions efficiently.
 
 
 ### 3. What differences/similarities do you see between data scientists and statisticians?

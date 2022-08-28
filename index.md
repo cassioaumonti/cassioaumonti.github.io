@@ -1,4 +1,4 @@
-This blog will discuss primarily the concept, main attributes, and duties of being a Data Scientist in 2022.
+This blog will discuss primarily the concept, main attributes, and duties of a Data Scientist.
 
 It will be composed of a series of posts narrowed by the topics and questions from ST 558.
 

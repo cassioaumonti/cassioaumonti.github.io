@@ -6,4 +6,4 @@ It will be composed of a series of posts narrowed by the topics and questions fr
 
 Welcome to my Data Science blog !!
 
-![Book logo](/cassioaumonti.github.io/docs/image.png)
+[Book logo](/cassioaumonti.github.io/docs/image.png)

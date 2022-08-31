@@ -18,7 +18,7 @@ linkedin_username: "https://www.linkedin.com/in/cassioussimonti"
 #########################################################################################
 ######### Nothing below needs to be changed (unless you know what you're doing) #########
 #########################################################################################
-theme: "cayman" #"minima"
+theme: "minima"
 remote_theme: pages-themes/cayman@v0.2.0 # added last update
 
 rss: rss

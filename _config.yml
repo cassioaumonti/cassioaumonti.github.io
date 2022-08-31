@@ -18,17 +18,19 @@ linkedin_username: "https://www.linkedin.com/in/cassioussimonti"
 #########################################################################################
 ######### Nothing below needs to be changed (unless you know what you're doing) #########
 #########################################################################################
-theme: "minima"
+#theme: "Cayman" #"minima"
+remote_theme: pages-themes/cayman@v0.2.0 # added last update
 
 rss: rss
 
 kramdown:
   syntax_highlighter_opts:
     disable: true
-    
+ 
 plugins:
   - jekyll-feed
   - jekyll-sitemap
+  - jekyll-remote-theme # added last update
 
 titles_from_headings:
   strip_title: true

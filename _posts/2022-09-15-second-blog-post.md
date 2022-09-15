@@ -1,4 +1,8 @@
-Hello!!
+Hello again,
+
+Project 1 is done (link below) and it was great learning!!
+
+In Project 1, the goal was to work with functions in R and work out the code organization and readability. 
 
 
 

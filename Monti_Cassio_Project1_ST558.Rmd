@@ -1,0 +1,730 @@
+---
+title: "Project 1"
+author: "Cassio Monti"
+date: "2022-09-11"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+    code_folding: show
+    theme: readable
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
+```
+
+# Purpose of this Document
+
+The goal of this document and the program developed throughout is to demonstrate the use of packages, and group of packages like *tidyverse* and built-in R functions, to process data and build functions to run particular groups of necessary operations in order to facilitate the readability and organization of the code. To show that, this document is organized in sections and some examples of usage of each of the functions are provided as well as the thought process to build them.
+
+
+# Basic Structure of the Data Set
+
+This document reads several data sets having the same structure, which will make the automation of the required processes possible. If the data sets had different structure from one another, then a more complex code would be necessary to treat each one of them. The data sets come from a survey from 2010. They are provided in wide format having the variables **Area_name**, **STCOU**, and a sequence of columns encoding a particular detail about the survey. These variables contain the enrollment value for each **Area_name** and **STCOU**. As an example, the variable **EDU010187D** is read as EDU = represent the survey; 0101 = representing the type of value you have from that survey; 87 = year of measurement. All the subsequent data sets that will be read in here will have the same format.
+
+
+# Data Processing Functions
+
+## Reading in the Data Set
+
+The first action to execute is to read in the required file from the source link. For this, I will use `read_csv()` function from the package *tidyverse*, specifically from *readr* package. I could have created a function to call `read_csv()`, but it is not necessary since this new function would only execute another function and not a group of operations/functions. The argument **url** represents the link through which `read_csv()` will access the data set and read it into R environment. The code below exemplifies the read in process. The below example shows how to read in a .csv data set using `read_csv()` function and prints out 6 rows of the new object.      
+    The package *readr* is loaded when *tidyverse* is loaded, but I called it independently to show that the function `read_csv()` belongs to it. Another way of showing this is `readr::read_csv(...)`. The package *tidyverse* contains many packages necessary to complete this assignment, thus, I am loading it in the here.
+
+
+```{r readin}
+
+# loading the required packages
+library(tidyverse)
+library(readr)
+
+# link to the data set
+url = "https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv"
+
+# reading in the .csv file
+sheet <- read_csv(url)
+
+# printing the first 10 rows of the data set from the previous step. This part is just an example and will not be used in further steps.
+sheet %>% 
+  head()
+
+```
+
+
+## Steps 1 & 2 of Data Processing
+
+In step 1, it is required to select the variables **Area_name**, **STCOU**, and any column that ends in "D". Also, it was required to rename **Area_name** to **area_name**. The step 2 asks for converting this data set from wide to long format.     
+   These steps 1 and 2 require the use of more functions and operations, thus, I created a function called `func_steps1_2()` to group and execute the required actions.      
+   
+   - *Step 1*: The functions `select()`, `ends_with()`, and `rename()` from **dplyr** package were used.
+      - `Select()`: I used this one to select the required variables **Area_name** and **STCOU**.
+      - `ends_with()`: I used this function to select, associated with `select()`, all variables which names end with the letter "D", as required.
+      - `rename()`: I used this function to rename the variable **Area_name** to now be **area_name**, as required in the instructions.
+
+   - *Step 2*: The function `pivot_longer()`, from **tidyr** package, and `ends_with()` were used to complete the second step.
+      - `pivot_longer()`: A function to convert wide to long format. It takes some arguments, and among them, I used `cols = ends_with("D")`, to specify the columns that end with the letter "D" should be converted into values of a variable named **enroll_code**, specified on the argument `names_to =`. The `values_to = val_name` argument was used to convert the values that each of these variables contained when in the wide format into values for a single variable.      
+      
+   These steps 1 and 2 require the use of more functions and operations, thus, I created a function called `func_steps1_2()` to group and execute the required actions. This new function has three arguments, "a" which takes the wide format object from the last section (tibble/data frame), "val_name", which allows the user to specify the name of the variable corresponding to the enrollment value converted from wide to long format. The third argument is ..., named unnamed arguments, which takes any other arguments that the used functions might have as additional options.       
+
+  Therefore, the operations done within this function are chained using pipe, from **tidyverse** package, and execute the selection, renaming, and conversion to longer format, in this order. The code below shows the function implementation and an example of usage. The use of the variable "default_var_name" is due to the call of `func_steps1_2()` from other function in further steps, which "default_var_name" is an argument of this outer function. It will be explained later. The variable "default_var_name" declares the default variable name for this function to be **enroll_value**. A temporary object "bb" is created to intermediate the operations within the function. The provided example prints out 6 rows of the now long format file.
+
+```{r steps1_2}
+
+# default name to the enrollment value variable to compose long format data.
+default_var_name = "enroll_value"
+
+# function declaration:
+# it creates a new internal object -bb- which is returned after all the operations
+# are executed by chaining the functions from dplyr package through return().
+func_steps1_2 <- function(a, val_name = default_var_name, ...){
+  
+  bb <- a %>%
+    select(Area_name, STCOU, ends_with("D")) %>%
+    rename(area_name = Area_name) %>%
+    pivot_longer(cols = ends_with("D"), names_to = "enroll_code", values_to = val_name)
+  return(bb)
+
+}
+
+# example of usage of func_steps1_2():
+# a = sheet (from previous section)
+# val_name = "my_val_name" (user defined variable name. Default = "enroll_value")
+# head(n=10): shows 10 rows of the long format data set.
+sheet %>%
+  func_steps1_2(val_name = "my_val_name") %>%
+  head()
+
+```
+
+
+## Step 3 - Working with Strings
+
+The step 3 has two actions to be taken, which justify the creation of a new function to encapsulate these procedures and organize better the code.
+
+ - Parse the string to pull out the year and convert the year into a numeric value such as 1997 or 2002.
+ 
+   To take care of the first operation, the built-in function `substr()` was used to extract the digits corresponding to the year of measurement in the "enroll_code" variable. Since the values of "enroll_code" have the same number of characters throughout, and their specific positions in the values are well defined in the *Data Structure* section, the `substr()` function can be used to extract fixed digits of a string. In particular, the two digits corresponding to the year of measurement in all of the values of "enroll_code" are digits 8 and 9. The description of the survey informs that the collected data is ranged from early 1970's to 2010. This information is important to correctly convert the year to the required format. So, after extracting the two digits using `substr()` function and explicitly converting them into numeric through `as.numeric()` function, the `if_else()`, from **dplyr** package, function was used to conditionally add 1900 to the digits that are greater than 10, referring to the years before 2000, or add 2000 otherwise, which refers to the years after 2000. The new variable, "year", was then created through the `$` operator (df$year).
+
+ - Grab the first three characters and following four digits to create a new variable representing which measurement was grabbed (Hint: Check out the substr()).     
+
+   This second requirement of step 3 asks to select the first 7 digits and create a new variable with them to represent which measurement was selected. In order to accomplish that task, the function `substr()` was used again, but now selecting digits from 1 to 7 and assigning them to a new variable through the `$` operator (df$measurement).      
+   
+The code below shows the implementation of the aforementioned function and gives an example of its usage and prints out the first 6 rows of the resultant object. This function has two arguments: i) the data frame/tibble object from which the "enroll_code" variable can be selected; ii) the unnamed argument, giving the options to use extra arguments from internal functions of `func_step3()`.
+
+
+```{r step3}
+
+# declaring the new function
+func_step3 <- function(b, ...){
+
+  # select the 8th and 9th positions of the string
+  b1 = substr(x = b$enroll_code, start = 8, stop = 9)
+  
+  # explicitly converts the selected digits into numeric
+  b1 = as.numeric(b1)
+  
+  # because the data set can only have years up to 2010, then if the two
+  # digits are greater than 10, to them I added 1900, otherwise add to them 2000.
+  b$year = if_else(b1 > 10, 1900 + b1, 2000 + b1)
+  
+  # selecting the first 7 digits of the string
+  b$measurement = substr(x = b$enroll_code, start = 1, stop = 7)
+  
+  # returns a data frame/tibble
+  return(b)
+}
+
+# example: using data set from previous sections
+sheet %>%
+  func_steps1_2() %>%
+  func_step3() %>%
+  head()
+
+```
+
+
+## Step 4 - Creating Two Data Sets
+
+In step 4, two data sets should be created in order to continue with a more detail oriented analysis. This step deals with working on the "area_name" variable. By using the code `grep(pattern = ", \\w\\w", c$area_name)`, it was extracted the rows representing the counties. Complementary, by using `-grep(pattern = ", \\w\\w", c$area_name)`, the non-county data set was returned. Once the data sets were subset, then two objects were created, `county` (for county data) and `noncounty` (for non-county data). This was possible because the variable **area_name** has a specific format for its values, which "County Name, DD" structure is used for county data and "State Name" is used for non-county data.      
+  The next task is to overwrite classes for each of these two new tibble objects. To accomplish that, it was used `class(county) = c("county", class(county))` for the county tibble and `class(noncounty) = c("state", class(noncounty))` for the non-county tibble. This action allows the user to create generic functions specifically to the pre-defined classes. The code below exemplifies the use of the mentioned functions and prints out the first 6 rows of each new object created as well as shows that the overwriting class step worked well. Notice that for the county data set, the names in **area_name** have the described format. The same for non-county data set.
+
+
+```{r step4_example}
+
+# Example of usage of the described functions: data from previous sections
+c = sheet %>%
+  func_steps1_2() %>%
+  func_step3()
+
+# variable to return the rows corresponding to county data.
+rows_county = grep(pattern = ", \\w\\w", c$area_name)
+  
+# assigning rows corresponding to county data to a new object.
+county = c[rows_county,]
+
+head(county)
+
+# assigning rows corresponding to non-county data to a new object.
+noncounty = c[-rows_county,]
+
+head(noncounty)
+
+# overwriting county class into the new object county
+class(county) = c("county", class(county));class(county)
+
+# overwriting state class into the new object noncounty  
+class(noncounty) = c("state", class(noncounty));class(noncounty)
+
+```
+
+A function was built considering the code above. This function needs two more steps (5 and 6) to be completely defined. However, since no specific directions were made about a particular function for step 4, an overall function encompassing step 4, function for step 5, and function for step 6 was built. This nesting function is shown below, however, not run yet.      
+  
+  The function below shows the operations executed in step 4, but now all the objects created are temporary because they are defined within the function. This function should return a list of two data frame/tibble data sets. They were created based on the function for step 5 (for county data) and function for step 6 (for non-county data).
+
+
+```{r step4_function_scheme, eval=FALSE}
+
+func_steps4_5_6 <- function(c, ...){
+  
+  # step 4 - all the same code demonstrated above:
+  rows_county = grep(pattern = ", \\w\\w", c$area_name)
+  
+  county = c[rows_county,]
+  noncounty = c[-rows_county,]
+  
+  class(county) = c("county", class(county))
+  
+  class(noncounty) = c("state", class(noncounty))
+  
+  # calling function from step5
+  # output_step5 <- func_steps5(...)
+
+  # calling function from step6
+  # output_step6 <- func_steps6(...)
+
+  # returns two data frames/tibbles as list elements
+  return(list(countyData = output_step5, stateData = output_step6))
+  
+}
+
+
+```
+
+
+## Step 5 - Working with County Data
+
+In step 5, a new variable is necessary to identify the US State from which the county is. In order to do that, the functions `nchar()` and `substr()`, from base R, were used. The first function had the purpose of counting the number of characters there is in the strings composing the values of the variable **area_name**. For example, consider the string "Autauga, AL". It has 11 characters, counting the white space. Thus, `nchar()` returns 11 for this string value. The necessity of `nchar()` is obvious since there are many county names which leads to different number of characters. Then, to extract the last two digits of **area_name** values, `substr()` was used with the arguments `start = ` being assigned to the number of characters minus one (to get the penultimate character) and `stop = ` being assigned to the number of characters (to get the last character). Therefore, the last two characters, the State ID, are extracted for each county in the data set. The code below defines the new function, `func_steps5()`, which takes two arguments, countydf (corresponds to the county data set) and the unnamed argument (allows the user to access arguments from the functions being used within the `func_steps5()`). An example of usage for this new function is provided at the bottom of the below code. In this example, I show how to use the function, which returns the new variable **state_id** to the input data set (county data). Then, the first 6 rows are printed out to show the new variable.
+
+
+```{r step5}
+
+# declaring a new function that takes the county data set
+func_steps5 <- function(countydf, ...){
+  
+  # counts the number of characters there is in each string   
+  n_char = nchar(countydf$area_name)
+  
+  # selects the State ID by considering the position of the last two
+  # elements of the string using n_char
+  ot = substr(x = countydf$area_name, 
+           start = (n_char-1), stop = n_char)
+
+  # returns a new variable
+  return(ot)
+}
+
+# example: using data from previous sections
+county$state_id = func_steps5(county = county)
+
+head(county)
+
+```
+
+
+## Step 6 - Working with Non-county Data
+
+In step 6, the non-county data set was used to classify the USA States according to their division. Therefore, a new variable **division** is created in the step 6. The divisions were provided in the instructions. Then a new function was declared for this step. The challenge of step 6 is to build several temporary vectors, made of strings, that were responsible for tracking down the division and the USA States that compose that division and assign them to the correct states in the input data set. There are 9 divisions in total for the 56 States. For example, division 2 is composed by New Jersey, New York, and Pennsylvania. Once the States related to the correct division were set, an intermediate step was necessary to finish the procedure of this new function. Some States in the non-county data set had their names in capital letters, which would return an error when compared to the State names in the division vectors. So, the function `str_to_title()`, from *stringr* package, was used to match the names between the vectors and the **area_name** variable from the non-county data set. The function `if_else()` was then used again to make the conditional statements for assigning the correct states for the corresponding division. The logical operator `%in%` was used to filter several values at once comparing two vectors (**area_name** and the vector corresponding to the states within a division). Also, it was required to return "ERROR" in cases corresponding to non-state. For example, "UNITED STATES" should return the "ERROR" value for this new variable. The `if_else()` took care of that. A function was created to execute these operations, `func_steps6()`. This function takes two arguments, noncountydf (corresponds to the non-county data set) and the unnamed argument (allows the user to access arguments from the functions being used within the `func_steps6()`). There is an example of usage of this function in the code below and the first 6 rows of the object containing the new variable is shown.
+
+
+```{r}
+
+# function declaration
+func_steps6 <- function(noncountydf, ...){
+  
+  # creating the vectors tracking the division and the states belonging to each division
+  # these vectors are temporary, which means they will not show up in the global
+  # environment. They will only exist while the function func_steps6() is running.
+  div1 = c("Connecticut", "Maine", "Massachusetts", "New Hampshire",
+           "Rhode Island", "Vermont")
+  
+  div2 = c("New Jersey", "New York", "Pennsylvania")
+  
+  div3 = c("Illinois", "Indiana", "Michigan", "Ohio", "Wisconsin")
+  
+  div4 = c("Iowa", "Kansas", "Minnesota", "Missouri", "Nebraska",
+           "North Dakota", "South Dakota")
+  
+  div5 = c("Delaware", "Florida", "Georgia", "Maryland", "North Carolina", 
+           "South Carolina", "Virginia", "District of Columbia", "West Virginia")
+  
+  div6 = c("Alabama", "Kentucky", "Mississippi", "Tennessee")
+  
+  div7 = c("Arkansas", "Louisiana", "Oklahoma", "Texas")
+  
+  div8 = c("Arizona", "Colorado", "Idaho", "Montana", "Nevada", "New Mexico", 
+           "Utah", "Wyoming")
+  
+  div9 = c("Alaska", "California", "Hawaii", "Oregon", "Washington")
+  
+  # makes the first letter capital (in area_name - non-county data) for matching with 
+  # the vectors above.
+  g = str_to_title(noncountydf$area_name)
+  
+  # conditional statement to select the correct division based on the states
+  Division = if_else(g %in% div1, "New England", #"division1"
+                   if_else(g %in% div2, "Mid-Atlantic", #"division2"
+                   if_else(g %in% div3, "East North Central",#"division3",
+                   if_else(g %in% div4, "West North Central",#"division4",
+                   if_else(g %in% div5, "South Atlantic",# "division5",
+                   if_else(g %in% div6, "East South Central",#"division6",
+                   if_else(g %in% div7, "West South Central",#"division7",
+                   if_else(g %in% div8, "Mountain",#"division8",
+                   if_else(g %in% div9, "Pacific","ERROR")))))))))#"division9"
+  # if the row belongs to a non-state information, then return ERROR.
+  
+  # returns a new variable
+  return(Division)
+  
+}
+
+# example: using data set from previous sections
+noncounty$division = func_steps6(noncounty = noncounty)
+
+head(noncounty)
+
+```
+
+
+## Combining Steps 4, 5, and 6 into one Function
+
+The Requirements section, from the handout, asks for a function calling the procedure created in step 4 and also asks to call the functions defined in step 5 and step 6 within it. The result that this function outputs are two tibble data sets, one for county data and another for non-county data. The function created in step 5 deals specifically with the county data, so this function will receive as input the county data from step 4 procedure. The function created in step 6 works out the non-county data, then it will take in the data set referring to the non-county data produced in step 4. The code below shows the definition of this function and an usage example of it. This new function returns a list containing the two data frames/tibbles produced in steps 5 and 6 having the step 4 as a previous process. This new object created can be accessed later on by specifying if county or non-county data set is desired. The example below shows the first 6 rows of these two objects and how access them from a list.
+
+```{r function_step4_5_6}
+
+# declaration of the function: takes argument c = output data frame from step3
+# unnamed argument (...) = allows the user to access arguments from functions 
+# used within the outer function.
+func_steps4_5_6 <- function(c, ...){
+  
+  # described in step 4
+  rows_county = grep(pattern = ", \\w\\w", c$area_name)
+  
+  # described in step 4
+  county = c[rows_county,]
+  noncounty = c[-rows_county,]
+  
+  # described in step 4
+  class(county) = c("county", class(county))
+  class(noncounty) = c("state", class(noncounty))
+  
+  # calling function created in step5
+  county$state_id = func_steps5(countydf = county, ...)
+
+  # calling function created in step6
+  noncounty$division = func_steps6(noncountydf = noncounty, ...)
+
+  # outputs a list containing two data frames/tibbles:
+  # countyData, referring to the county data set
+  # StateDat, referring to the non-county data set.
+  return(list(countyData = county, stateData = noncounty))
+  
+}
+
+# example: using data set from previous sections
+out_example = sheet %>%
+  func_steps1_2() %>%
+  func_step3() %>%
+  func_steps4_5_6()
+
+# print out the first 6 rows of the county data present in the output list
+head(out_example$countyData)
+
+# print out the first 6 rows of the non-county data present in the output list
+head(out_example$stateData)
+
+```
+
+# Combining Data Functions
+
+This section is divided into three parts. In the first part, `my_wrapper()` function is defined and it aims to call the functions from previous sections, including `read_csv()` from **readr** package. In the code chunk below, see the declaration of this new function and an example of its usage. As shown in the previous sections, this function should output two data frames/tibbles.       
+    In summary, this new function takes the URL and, through `read_csv()`, it reads in the data. The output object from this step goes as input to the function that runs steps 1 and 2. The output from it goes as input of the function that executes step 3, and  then its output goes as input for the function that runs steps 4, 5, and 6. The overall output of `my_wrapper()` function is list of two data frames/tibbles, one corresponding to the county data set and the other one corresponding to the non-county data set. This new function takes three arguments: myurl (takes the link to the raw wide formatted data set), default_var_name (takes from the user the name of the variable corresponding to the enrollment value), and the unnamed argument (...=). As an example of its usage, the first provided url is run and the output is accessed through the `head()` function to show the two data sets mentioned. Notice they are the same as shown in previous sections, but now they are obtained in an automated procedure encompassing many function.
+
+```{r my_wrapper_func}
+
+# declaration of the new function. It takes three arguments:
+# myurl = takes the link to access the data set.
+# default_var_name = the variable name chosen by the user (Default ="enroll_value")
+# unnamed arguments = allow access more arguments from internal functions.
+my_wrapper <- function(myurl, default_var_name = "enroll_value", ...){
+  
+  # reading in the file through the link and assigning it to the object sheet
+  sheet = read_csv(file = myurl, ...)
+  
+  # calling function for steps 1 and 2.
+  b1 = func_steps1_2(a = sheet, val_name = default_var_name, ...)
+  
+  # calling function for step 3.
+  dff = func_step3(b = b1, ...)
+  
+  # calling function for steps 4, 5, and 6.
+  d1 = func_steps4_5_6(c = dff, ...)
+  
+  # returns a list of two elements, county and non-county data sets.
+  return(d1)
+  
+}
+
+# example using the first url provided and defining the variable name
+# Notice that the variable name is different from the default value in this example.
+edu01a = my_wrapper(myurl = "https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv",
+           default_var_name = "my_enroll_value")
+
+# as shown in the previous steps, this is the county data set produced and accessed
+# calling it from a list of two objects.
+head(edu01a$countyData)
+
+# as shown in the previous steps, this is the non-county data set produced and accessed
+# calling it from a list of two objects.
+head(edu01a$stateData)
+
+```
+
+The second part of this section regards to the combining data sets requirement. A new function was created to combine data sets that are read in using different URLs. This function must be created to join data sets having the same variable names, which means that this function joins together a county data set with another county data set and the same for non-county data sets. In order for this to happen, two inputs must be defined: x = output from `my_wrapper()` corresponding to the county or non-county data set and y = output from `my_wrapper()` corresponding to the county or non-county data set that is different from x. If x and y are equal, then the output will be a data set with duplicates all over its rows.     
+      As a recall, the output of `my_wrapper()` function is a list containing two data frames/tibbles, one corresponding to the county data set and another to the non-county data set. As an internal operation, this new function accesses the particular data frame from each list and combine them accordingly. For example, the county data is combined by extracting the county data from both inputs in the new function (`dplyr::bind_rows(x$countyData, y$countyData)`). The code below shows the declaration of this new function. The output of the combining function is a list of two elements, one corresponding to the county data and the other to the non-county data.
+
+```{r combining_tibbles}
+
+# function declaration. It takes two arguments, x = output from my_wrapper()
+# corresponding to one URL; and y = output from my_wrapper()
+# corresponding to another URL.
+comb_tibbles <- function(x,y){
+  
+  # extracting the county data sets from different files processed by my_wrapper()
+  outCounty = dplyr::bind_rows(x$countyData, y$countyData)
+  
+  # extracting the non-county data sets from different files processed by my_wrapper()
+  outState = dplyr::bind_rows(x$stateData, y$stateData)
+  
+  # returns a list of two elements. One is the county and the other is the 
+  # non-county data set.
+  return(list(countyData = outCounty, stateData = outState))
+  
+}
+
+```
+
+The third part regards to testing the created functions on different data sets. The code below runs the two links provided and prints out the outputs of each call of `my_wrapper()` function and creates two lists "edu01a" and "edu01b". Notice that the years printed out between the two calls of `my_wrapper()` are different, for the corresponding data sets, meaning that they come from distinct sources. Lastly, the function that combines two tibbles is used to combine "edu01a" and "edu01b". See code below.
+
+```{r running_examples}
+
+# running my_wrapper() function for both provided links
+edu01a = my_wrapper(myurl = "https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv",
+           default_var_name = "enroll_value")
+
+# compare the years between the output from this call to the corresponding on edu01b a few lines below.
+edu01a$countyData
+
+edu01b = my_wrapper(myurl = "https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv",
+           default_var_name = "enroll_value")
+
+# compare the years with this file
+edu01b$countyData
+
+# Usage of comb_tibble() function: the object out below outputs a list of two elements: county and non-county data sets, now combining county data sets from different read in files. The same for non-county data sets.
+out = comb_tibbles(edu01a,edu01b)
+
+
+# comparing dimensions
+dim(edu01a$countyData)
+
+# the same can be done for non-county data sets
+dim(edu01a$stateData)
+
+dim(edu01b$countyData)
+
+# the same can be done for non-county data sets
+dim(edu01b$stateData)
+
+# printing out the dimensions the tibbles
+dim(out$countyData)
+
+dim(out$stateData)
+
+```
+
+Notice that each object `edu01a$countyData` and `edu01b$countyData` presents 31,450 rows and 7 variables. The object `out$countyData` presents 62,900 rows and 7 columns. This means that the two data sets were combined together to form the `out$countyData`. The same can be seen for the non-county data.
+
+# Generic Functions
+
+In this section, two generic functions are created. One for plotting county and another for plotting non-county data. In order to do that, the functions were implemented based on the class of the objects. One object has the class county and the other has the class state. These two classes will be used here.
+
+## Plotting State Data
+
+This function takes three arguments: i) the object having the class set as "state", ii) the name of the enrollment value (defined in previous steps) defined by the user but with a default = "enroll_value", and iii) the unnamed argument.     
+    With the state data set, this function filters the divisions for not counting the "ERROR" value generated in step 6. Then, it groups by **division** and **year** in order to obtain the summary information for the enrollment variable (**enroll_value**). The average of **enroll_value** is taken and grouped by division and year. A structure in chaining was used to accomplish these tasks and the functions `filter()`, `group_by()`, and `summarise()` were used, in that order. To remove "ERROR" from the data set, the following logic used was: IF division IS NOT "ERROR", then select the rows and proceed to grouping and summarizing functions. The function `ggplot()` and `geom_line()` were used to plot these data. The code below shows the declaration of the generic `plot.state` function. The code `mean(get(var_name))` was used to reference the "var_name", which by default is **enroll_value**, in the function call. This procedure produces a temporary data frame ("new_df"), which is used in the `ggplot()`. An example was run in order to show that the generic function was successfully created.
+    
+
+```{r plot_state}
+
+# function declaration. Three arguments:
+# df = state class data frame/tibble
+# var_name = takes the variable name for enrollment value. Default = "enroll_value
+# unnamed argument (...)
+plot.state <- function(df, var_name = "enroll_value", ...){
+  
+  # Chaining for filtering, grouping, and summarizing (Thinking tidyverse).
+  new_df = df %>%
+    filter(division != "ERROR") %>%
+    group_by(division, year) %>%
+    summarise(avg_dy = mean(get(var_name)))
+  
+  # plotting the resultant data frame
+  ggplot(new_df, aes(x = year, y = avg_dy, color = division)) +
+    geom_line()
+  
+}
+
+# example of use of this generic plot function for the two data sets read in 
+# in previous steps
+plot(df = out$stateData)
+
+```
+
+
+## Plotting County Data
+
+In this part, the county data set is of the interest. A new function was created having some additional arguments to give more flexibility to the plot.county function. The first argument is the data set ("df") which takes only "county" class data sets. Then, "var_name" takes the variable name referring to the enrollment value from the previous steps, and the unnamed argument is also an argument. Besides these arguments (described in the plot.state function), also was added "state_ID" (specify the state of reference for plotting, default = "AL"), "sort_from" (specify if the sorting is from top-bottom or bottom-top direction, default = "top"), and "nobs" (number of observations to be used in the plot, default = 5).     
+   
+   This function starts with `filter()` function that filters the counties belonging to the State specified on "state_ID" argument, then `group_by()` function groups these counties and `summarise()` function gives the overall mean by using code `mean(get(var_name))` to access the "var_name" argument, similar to what is defined in the plot.state function from previous section. A new temporary object is created and then a conditional statement IF-ELSE takes "sort_from" argument and defines the sorting options based on "top" (descending) or "bottom" (ascending). It is also given a `stop()` message that returns an error and says "You are only able to select top or bottom options", informing the user about the available options for the argument "sort_from" if other input different than "top" or "bottom" is given. Once these steps are working, then, by using the argument "nobs", the top 5 or bottom 5 counties are selected, as nobs = 5 is the default value. Essentially, this function returns the first or last 5 counties in the data set, based on the overall averages of the counties with regard to the enrollment value. Now, a new data frame can be created based on the selected counties through the evaluation of the function arguments "sort_from" and "nobs". This new data frame is a filter based on the original data frame but only containing 5 (default) counties selected from "top" (descending order) for the state "AL" (default setting), for example. This data frame contains all the columns of the original data frame that was input in the plot.county function. The last step is to plot this new data frame. The code below shows the procedure. The example below intends to show that the generic function works well. The example plots North Carolina, bottom 5 counties.
+
+
+```{r plot_county}
+
+# function declarations. Arguments:
+# df = state class object
+# var_name = name for the enrollment variable (default = "enroll_value")
+# state_ID = defines the state from which the function should look for counties
+# (default = "AL")
+# sort_from = defines the sorting order (descending = top; ascending = bottom).
+# (default = "top")
+# nobs = defines the number of counties to select (default = 5)
+# unnamed argument (...)
+plot.county <- function(df, var_name = "enroll_value", state_ID = "AL", sort_from = "top", nobs = 5, ...){
+
+  # 1-takes state_ID and filter the data accordingly.
+  # 2-group the data based on counties within state_ID
+  # 3-summarise gives the overall mean for enrollment value for these counties.
+  o = df %>%
+      filter(state_id == state_ID) %>%
+      group_by(area_name) %>%
+      summarise(avg_dy = mean(get(var_name)))
+
+  # conditional statement to select the correct sorting options chosen.
+  if(sort_from == "top"){
+    o = o %>%
+      arrange(desc(avg_dy))
+    
+  }else if(sort_from == "bottom"){
+    o = o %>%
+      arrange(avg_dy)
+    
+  }else{
+    stop("You are only able to select top or bottom options")
+  }
+  
+  # select the counties to be plotted out based on nobs
+  aux = o[1:nobs,]
+  
+  # creating a new data frame with the counties selected in the last step
+  new_df = df[df$area_name %in% aux$area_name,]
+
+  # plotting the enrollment value by year coloring the counties.
+  ggplot(new_df, aes(x = year, y = get(var_name), color = area_name)) +
+    geom_line()
+
+}
+
+# example of use of this generic plot function for the two data sets read in 
+# in previous steps. This example has state_ID = "NC", sort_from = "bottom"
+# and nobs = 5.
+plot(df = out$countyData, state_ID = "NC", sort_from = "bottom", nobs = 5)
+
+# if the commented code below was run, an error would come out saying that
+# "another" is not a valid option for sort_from argument.
+
+# plot(df = out$countyData, state_ID = "NC", sort_from = "another", nobs = 5)
+
+```
+
+# Put it Together
+
+This section has two parts, the first one runs all the previous sections and plots the data sets using the generic functions defined in last section. The two links provided so far are run in this first part. The second part gives additional 4 links that should be used in a validation step.
+
+## Running the Two Given Links
+
+Now, a straight use of the function and plotting the results is required. The first two given links are used in this section.
+
+  - Run the data processing function on the two enrollment URLs given previously: In this part, `my_wrapper()` function is run for the two links and two lists containing county and state data sets are produced, "edu01a" and "edu01b".
+
+```{r wrapping}
+
+
+edu01a = my_wrapper(myurl = "https://www4.stat.ncsu.edu/~online/datasets/EDU01a.csv",
+           default_var_name = "enroll_value")
+
+edu01b = my_wrapper(myurl = "https://www4.stat.ncsu.edu/~online/datasets/EDU01b.csv",
+           default_var_name = "enroll_value")
+
+
+```
+
+  - Run the data combining function to put these into one object: This part combines the data sets contained in the two lists according to the class of the data frames. This function returns a single object, a list of two combined data frames (county combined data and non-county combined data).
+  
+```{r combining}
+
+out = comb_tibbles(edu01a,edu01b)
+
+```
+
+  - Use the plot function on the state data frame: Using the `plot()` function, and providing the state class object, the `plot.state` function is called.
+  
+```{r plotting_state}
+
+plot(df = out$stateData, var_name = "enroll_value")
+
+```
+
+  - Use the plot function on the county data frame: Using the `plot()` function, and providing the county class object, the `plot.county` function is called. This part evaluates some scenarios:
+  1. state = “PA”, the group = "top", the number looked at being 7:
+
+```{r plotting_county1}
+
+plot(df = out$countyData, state_ID = "PA", sort_from = "top", nobs = 7)
+
+```
+
+
+  2. state = “PA”, the group = "bottom", the number looked at being 4:
+
+```{r plotting_county2}
+
+plot(df = out$countyData, state_ID = "PA", sort_from = "bottom", nobs = 4)
+
+```
+
+
+  3. Default settings:
+
+```{r plotting_county3}
+
+plot(df = out$countyData)
+
+```
+
+
+  4. state = “MN”, the group = "top", the number looked at being 10:
+
+```{r plotting_county4}
+
+plot(df = out$countyData, state_ID = "MN", sort_from = "top", nobs = 10)
+
+```
+
+
+## Running the Four Given Links
+
+Some extra links for additional data sets are provided in this section. They are run and plotted.
+
+  - Run the data processing function on the four enrollment URLs given: In this part, `my_wrapper()` function is run for the four links and four lists containing county and state data sets are produced, "pst01a", "pst01b", "pst01c", and "pst01d".
+
+```{r wrapping4imes}
+
+pst01a = my_wrapper(myurl = "https://www4.stat.ncsu.edu/~online/datasets/PST01a.csv",
+                    default_var_name = "enroll_value")
+
+pst01b = my_wrapper(myurl = "https://www4.stat.ncsu.edu/~online/datasets/PST01b.csv",
+                    default_var_name = "enroll_value")
+
+pst01c = my_wrapper(myurl = "https://www4.stat.ncsu.edu/~online/datasets/PST01c.csv",
+                    default_var_name = "enroll_value")
+
+pst01d = my_wrapper(myurl = "https://www4.stat.ncsu.edu/~online/datasets/PST01d.csv",
+                    default_var_name = "enroll_value")
+
+```
+
+
+  - Run the data combining function to put these into one object: This part combines the data sets contained in the four lists according to the class of the data frames. To join all 4 data sets, the combining function must be run 3 times. In the end, there is a single object, a list of two combined data frames (4 county combined data and 4 non-county combined data). However, only two data frames are contained in the output object (list).
+
+```{r combining3times}
+
+out1 = comb_tibbles(pst01a,pst01b)
+
+out2 = comb_tibbles(out1,pst01c)
+
+out3 = comb_tibbles(out2,pst01d)
+
+```
+
+
+  - Use the plot function on the state data frame: Using the `plot()` function, and providing the state class object, the `plot.state` function is called. This function is called using the state data combined from the previous 4 files.
+  
+```{r plotting_state3times}
+
+plot(df = out3$stateData, var_name = "enroll_value")
+
+```
+
+
+  - Use the plot function on the county data frame: Using the `plot()` function, and providing the county class object, the `plot.county` function is called. This part evaluates some scenarios
+  1. state = “CT”, the group = "top", the number looked at being 6:
+
+```{r plotting_county1_4links}
+
+plot(df = out3$countyData, state_ID = "CT", sort_from = "top", nobs = 6)
+
+```
+
+
+  2. state = “NC”, the group = "bottom", the number looked at being 10:
+
+```{r plotting_county2_4links}
+
+plot(df = out3$countyData, state_ID = "NC", sort_from = "bottom", nobs = 10)
+
+```
+
+
+  3. Default settings:
+
+```{r plotting_county3_4links}
+
+plot(df = out3$countyData)
+
+```
+
+
+  4. state = “MN”, the group = "top", the number looked at being 4:
+
+```{r plotting_county4_4links}
+
+plot(df = out3$countyData, state_ID = "MN", sort_from = "top", nobs = 4)
+
+```
+
+# Conclusion
+
+This assignment aimed to build several functions, using known packages/functions, and create a more structured and organized code. Also, the creation of generic functions were addressed, which gives more flexibility for package building and to have more experience with the object oriented-programming feature of R. Some plotting functions and arguments were addressed as well. A very important part of a data scientist job is to provide good visualization of the results, then it is fundamental to work with graphs and make them as most clean and intuitive as possible and `ggplot()` is great tool for that purpose.
+

@@ -8,7 +8,7 @@ I think the most interesting finding was related to the analysis of financial da
 
 The most difficult part in the logic was to assemble the calls of the URL parts due to the wide variety of options that each end points had available. I can say that this was the main difficulty in the programming part as well, because some of the parts are connected and they interact with each other. This made the creation of the correct URL call more challenging for different end points. However, I found it a fun part as well because I went more in-depth to the financial API and all the options it provides, which really makes us to read and understand the meaning of each of the modifiers. This helps us to learn more about the terms related to the API, which, in my case, was a very good experience because of financial terms were kind of fuzzy to me before this project. Hence, I can say that this project was beneficial to me in many senses.
 
-The only issue we had in this project was related to the GitHub repository, which suddenly stopped publishing the web page on the browser, which made us have to work on some options to solve that problem. Something we have learned in this matter is that when we turn our repository from private to public, it sometimes can return back to basic settings and the *GitHub pages* are set to not show the README.md file. I hope this information helps you to solve this problem if you face it in the future. Now we were able to solve this issue and our page is back to online. The two links provide some paths: the first link below leads you to the web page with the published vignette (this also contains all the commits and prior work to build the final document seen in this vignette); and the second link below leads you to the repository, in which all the commits and work has been done and are stored.
+The only issue we had in this project was related to the GitHub repository, which suddenly stopped publishing the web page on the browser, which made us have to work on some options to solve that problem. Something we have learned in this matter is that when we turn our repository from private to public, it sometimes can return back to basic settings and the *GitHub pages* are set to not show the README.md file. I hope this information helps you to solve this problem if you face it in the future. Now we were able to solve this issue and our page is back to online. The two links provide some paths: the first link below leads you to the web page with the published vignette (this also contains all the commits and prior work to build the final document seen in this vignette); and the second link below leads you to the repository, in which all the commits and work has been done and are stored. I will be also providing a third link (link 3 below) with the vignette page as a back up page, just in case. Better safe than sorry, right?!
 
 I hope you enjoy and that the vignette can be helpful for your analysis.
 
@@ -18,6 +18,8 @@ Thank you for reaching this far. See you next time!
 [link 1 - vignette page](https://cassioaumonti.github.io/project2T/)
 
 [link 2 - GitHub repository page](https://github.com/cassioaumonti/project2T)
+
+[link 3 - vignette page back up](https://cassioaumonti.github.io/basic/)
 
 
 

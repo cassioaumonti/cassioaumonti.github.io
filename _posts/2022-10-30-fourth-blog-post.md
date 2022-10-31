@@ -3,7 +3,7 @@
 
 This blog post goes over Methods for Selecting Variables.
 
-To narrow this discussion, I will try to write a brief discussion of how I would plan to determine variables to use in a regression model and what variable selection techniques I prefer and why.
+To narrow this blog post, I will try to write a brief discussion of how I would plan to determine variables to use in a regression model and what variable selection techniques I prefer and why.
 
 Usually, it is hard to tell what variables should be used for model building, unless there is a previous knowledge about the variable of interest and what variables influence its variation. For cases which no prior knowledge about the data set nor the variables that influence the response's variation, some methods could be applied to help finding the best set of variables for the regression model.
 

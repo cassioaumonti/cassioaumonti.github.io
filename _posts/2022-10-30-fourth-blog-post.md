@@ -21,6 +21,14 @@ Speaking about MSE, the mean squared error, some metrics are also used to select
 
 $$SSE = (y - \hat{y})^2$$
 
+$$
+M = \left( \begin{array}{ccc}
+x_{11} & x_{12} & \ldots \\
+x_{21} & x_{22} & \ldots \\
+\vdots & \vdots & \ldots \\
+\end{array} \right)
+$$
+
 and 
 
 $$MSE = \frac{(y - \hat{y})^2}{n}=\frac{SSE}{n}$$, where y is the observed vector, $\hat{y}$ is the estimated vector, and *n* is the vector length (sample size). These latter 2 are recommended for comparing models of the same size.
